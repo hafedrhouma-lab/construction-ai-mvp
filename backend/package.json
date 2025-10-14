@@ -1,0 +1,37 @@
+{
+  "name": "quickbids-backend",
+  "version": "2.0.0",
+  "description": "QuickBids AI Extraction Platform - Clean Architecture",
+  "type": "module",
+  "main": "src/app.js",
+  "scripts": {
+    "dev": "node --watch src/app.js",
+    "start": "node src/app.js",
+    "migrate": "node src/config/migrations/run.js"
+  },
+  "keywords": [
+    "quickbids",
+    "ai",
+    "extraction"
+  ],
+  "author": "EccoAi",
+  "license": "MIT",
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.908.0",
+    "@aws-sdk/s3-request-presigner": "^3.490.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "gm": "^1.25.1",
+    "joi": "^17.11.0",
+    "multer": "^1.4.5-lts.1",
+    "openai": "^4.104.0",
+    "pdf-lib": "^1.17.1",
+    "pg": "^8.11.3",
+    "uuid": "^9.0.1",
+    "winston": "^3.11.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  }
+}

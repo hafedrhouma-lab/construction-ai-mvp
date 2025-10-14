@@ -1,0 +1,202 @@
+/* components/extraction/LineItemsTable.css */
+
+.line-items-table {
+  overflow-x: auto;
+}
+
+.table {
+  min-width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.table thead {
+  background-color: #f9fafb;
+}
+
+.table th {
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 500;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.table tbody {
+  background-color: white;
+}
+
+.table tbody tr {
+  border-top: 1px solid #e5e7eb;
+}
+
+.table tbody tr.edited {
+  background-color: #f0fdf4;
+}
+
+.table td {
+  padding: 16px;
+  font-size: 14px;
+  color: #111827;
+}
+
+.edited-value {
+  font-weight: 600;
+  color: #15803d;
+}
+
+.original-value {
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 4px;
+}
+
+.original-label {
+  font-weight: 600;
+}
+
+.delta-column {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.delta-item {
+  font-size: 12px;
+}
+
+.delta-label {
+  font-weight: 600;
+  color: #ea580c;
+}
+
+.delta-value {
+  color: #374151;
+  margin-left: 4px;
+}
+
+.status-badge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.status-dot.ai {
+  background-color: #3b82f6;
+}
+
+.status-dot.edited {
+  background-color: #22c55e;
+}
+
+.status-text {
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.status-text.ai {
+  color: #1e40af;
+}
+
+.status-text.edited {
+  color: #15803d;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-edit {
+  color: #2563eb;
+  font-weight: 500;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 8px;
+}
+
+.btn-edit:hover {
+  color: #1e40af;
+}
+
+.btn-delete {
+  color: #dc2626;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 8px;
+}
+
+.btn-delete:hover {
+  color: #991b1b;
+}
+
+.btn-save {
+  color: #16a34a;
+  font-weight: 500;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 8px;
+}
+
+.btn-cancel {
+  color: #6b7280;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 8px;
+}
+
+.input-field {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.input-field:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.metadata-footer {
+  margin-top: 16px;
+  padding: 16px;
+  background-color: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+}
+
+.metadata-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  font-size: 14px;
+}
+
+.metadata-label {
+  font-weight: 600;
+  color: #374151;
+}
+
+.metadata-value {
+  color: #6b7280;
+  margin-top: 4px;
+  font-size: 12px;
+}
+
+.metadata-value.mono {
+  font-family: monospace;
+}

@@ -1,0 +1,48 @@
+.file-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.file-button {
+  width: 100%;
+  text-align: left;
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: 2px solid #e5e7eb;
+  background-color: white;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.file-button:hover {
+  border-color: #d1d5db;
+}
+
+.file-button.selected {
+  border-color: #3b82f6;
+  background-color: #eff6ff;
+}
+
+.file-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.file-info .filename {
+  font-weight: 500;
+  color: #111827;
+}
+
+.file-info .pages {
+  font-size: 14px;
+  color: #6b7280;
+  margin-top: 4px;
+}
+
+.checkmark {
+  width: 20px;
+  height: 20px;
+  color: #3b82f6;
+}

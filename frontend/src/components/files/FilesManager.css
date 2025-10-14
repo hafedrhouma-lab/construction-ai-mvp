@@ -1,0 +1,34 @@
+/* FilesManager Component Styles */
+
+.files-manager {
+  width: 100%;
+}
+
+.files-manager__upload-section {
+  margin-bottom: 4rem;
+}
+
+.files-manager__section-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 1.5rem 0;
+  letter-spacing: -0.025em;
+}
+
+.files-manager__list-section {
+  /* Styles handled by FilesList component */
+}
+
+.files-manager__no-project {
+  text-align: center;
+  padding: 3rem;
+  background-color: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+}
+
+.files-manager__no-project-text {
+  color: #6b7280;
+  margin: 0;
+}

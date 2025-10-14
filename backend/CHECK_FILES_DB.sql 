@@ -1,0 +1,84 @@
+-- ============================================
+-- CHECK FILES TABLE AFTER TEST
+-- ============================================
+
+-- 1. See all files created
+SELECT
+  id,
+  project_id,
+  original_filename,
+  status,
+  page_count,
+  s3_key,
+  created_at
+FROM files
+ORDER BY created_at DESC
+LIMIT 10;
+
+-- 2. See full file details with metadata
+SELECT
+  id,
+  original_filename,
+  status,
+  page_count,
+  s3_key,
+  s3_bucket,
+  file_size,
+  metadata,
+  created_at,
+  updated_at
+FROM files
+ORDER BY created_at DESC
+LIMIT 5;
+
+-- 3. Count files by status
+SELECT
+  status,
+  COUNT(*) as count
+FROM files
+GROUP BY status;
+
+-- 4. See files for a specific project
+SELECT
+  id,
+  original_filename,
+  status,
+  page_count,
+  created_at
+FROM files
+WHERE project_id = '11111111-1111-1111-1111-111111111111'
+ORDER BY created_at DESC;
+
+-- 5. Check the metadata (page info)
+SELECT
+  id,
+  original_filename,
+  status,
+  metadata::text  -- Show JSON as text
+FROM files
+WHERE status = 'ready'
+ORDER BY created_at DESC
+LIMIT 1;
+
+-- 6. Pretty print metadata (PostgreSQL)
+SELECT
+  id,
+  original_filename,
+  jsonb_pretty(metadata::jsonb) as metadata_pretty
+FROM files
+WHERE metadata IS NOT NULL
+ORDER BY created_at DESC
+LIMIT 1;
+
+-- 7. Check if S3 keys are correct format
+SELECT
+  id,
+  original_filename,
+  s3_key,
+  CASE
+    WHEN s3_key LIKE 'pages/%' THEN '✅ Correct format'
+    ELSE '❌ Wrong format'
+  END as key_format
+FROM files
+ORDER BY created_at DESC
+LIMIT 10;

@@ -4,6 +4,17 @@
 /node_modules
 /.pnp
 .pnp.js
+temp/
+
+#ENV
+*.env
+*.env.*
+
+backend/.env
+backend/.env.production
+
+frontend/.env
+frontend/.env.production
 
 # testing
 /coverage

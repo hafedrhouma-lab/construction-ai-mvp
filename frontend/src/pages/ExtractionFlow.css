@@ -1,0 +1,210 @@
+/* pages/ExtractionFlow.css */
+
+.extraction-flow {
+  min-height: 100vh;
+  background-color: #f9fafb;
+}
+
+.header {
+  background-color: white;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.header-content {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 16px 24px;
+}
+
+.header h1 {
+  font-size: 24px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+}
+
+.header p {
+  font-size: 14px;
+  color: #6b7280;
+  margin-top: 4px;
+}
+
+.container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 32px 24px;
+}
+
+.section-card {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.section-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 16px;
+}
+
+.loading-box {
+  margin-top: 16px;
+  padding: 16px;
+  background-color: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+}
+
+.loading-content {
+  display: flex;
+  align-items: center;
+}
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  color: #2563eb;
+  margin-right: 12px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.loading-text {
+  color: #1e3a8a;
+  font-weight: 500;
+}
+
+.legend {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 14px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.legend-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.legend-dot.blue {
+  background-color: #3b82f6;
+}
+
+.legend-dot.green {
+  background-color: #22c55e;
+}
+
+.legend-text {
+  color: #6b7280;
+}
+
+.page-nav-footer {
+  margin-top: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.nav-button {
+  padding: 8px 16px;
+  background-color: #f3f4f6;
+  color: #374151;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.nav-button:hover {
+  background-color: #e5e7eb;
+}
+
+.nav-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ========================================
+   SPLIT SCREEN GRID LAYOUT
+   ======================================== */
+
+.extraction-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.extraction-grid-left,
+.extraction-grid-right {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Sticky preview on left */
+.extraction-grid-left {
+  position: sticky;
+  top: 2rem;
+  height: fit-content;
+  max-height: calc(100vh - 4rem);
+}
+
+/* Responsive: Stack on tablet/mobile */
+@media (max-width: 1024px) {
+  .extraction-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .extraction-grid-left {
+    position: relative;
+    top: 0;
+    max-height: none;
+  }
+}
+
+/* ========================================
+   HORIZONTAL LAYOUT (Thumbnail + Controls)
+   ======================================== */
+
+.extraction-horizontal {
+  display: flex;
+  gap: 2rem;
+  align-items: flex-start;
+}
+
+.extraction-thumbnail {
+  flex-shrink: 0;
+  width: 280px;
+}
+
+.extraction-controls {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Responsive: Stack on mobile */
+@media (max-width: 768px) {
+  .extraction-horizontal {
+    flex-direction: column;
+  }
+
+  .extraction-thumbnail {
+    width: 100%;
+  }
+}

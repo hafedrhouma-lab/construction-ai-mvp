@@ -1,0 +1,47 @@
+.page-navigator {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.nav-btn {
+  padding: 8px 12px;
+  background-color: #f3f4f6;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+}
+
+.nav-btn:hover {
+  background-color: #e5e7eb;
+}
+
+.nav-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.page-input-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.page-label {
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.page-input {
+  width: 80px;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.page-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}

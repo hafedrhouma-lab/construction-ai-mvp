@@ -1,0 +1,103 @@
+.estimate-panel {
+  margin-top: 24px;
+  padding: 24px;
+  background: linear-gradient(to bottom right, #eff6ff, #eef2ff);
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+}
+
+.estimate-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 16px;
+}
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.metric-card {
+  background-color: white;
+  padding: 16px;
+  border-radius: 8px;
+}
+
+.metric-label {
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.metric-value {
+  font-size: 24px;
+  font-weight: 700;
+  margin-top: 4px;
+}
+
+.metric-value.total {
+  color: #111827;
+}
+
+.metric-value.ai {
+  color: #2563eb;
+}
+
+.metric-value.edited {
+  color: #16a34a;
+}
+
+.metric-value.completion {
+  color: #9333ea;
+}
+
+.dataset-metrics {
+  background-color: white;
+  padding: 16px;
+  border-radius: 8px;
+  border: 2px solid #fed7aa;
+}
+
+.dataset-title {
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 8px;
+}
+
+.dataset-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  font-size: 14px;
+}
+
+.dataset-item .label {
+  color: #6b7280;
+}
+
+.dataset-item .value {
+  margin-left: 8px;
+  font-weight: 600;
+}
+
+.dataset-item .value.highlight {
+  color: #ea580c;
+}
+
+.download-btn {
+  margin-top: 16px;
+  width: 100%;
+  padding: 12px 24px;
+  background-color: #16a34a;
+  color: white;
+  border-radius: 8px;
+  border: none;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.download-btn:hover {
+  background-color: #15803d;
+}
