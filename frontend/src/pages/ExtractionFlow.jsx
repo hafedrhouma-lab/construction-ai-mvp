@@ -12,6 +12,8 @@ import {
 import { extractionsApi } from '../api/extractions';
 import './ExtractionFlow.css';
 
+const API_URL = import.meta.env.VITE_API_URL || '${API_URL}';
+
 export default function ExtractionFlow() {
   const { fileId: urlFileId } = useParams();
   const [searchParams] = useSearchParams();
@@ -32,7 +34,7 @@ export default function ExtractionFlow() {
 
   const loadFileById = async (fileId) => {
     try {
-      const response = await fetch(`http://localhost:3001/api/v1/files/${fileId}`);
+      const response = await fetch(`${API_URL}/files/${fileId}`);
       const file = await response.json();
       setSelectedFile(file);
     } catch (error) {

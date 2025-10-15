@@ -12,11 +12,12 @@ export default function FileSelector({ selectedFile, onSelectFile }) {
 
   const loadFiles = async () => {
     try {
-      const projects = await fetch('http://localhost:3001/api/v1/projects').then(r => r.json());
-      const projectId = projects[0]?.id;
+        const API_URL = import.meta.env.VITE_API_URL || '${API_URL}';
+        const projects = await fetch(`${API_URL}/projects`).then(r => r.json());
+        const projectId = projects[0]?.id;
 
-      if (projectId) {
-        const filesData = await fetch(`http://localhost:3001/api/v1/files?project_id=${projectId}`).then(r => r.json());
+        if (projectId) {
+          const filesData = await fetch(`${API_URL}/files?project_id=${projectId}`).then(r => r.json());
         setFiles(filesData);
       }
     } catch (error) {

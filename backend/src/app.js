@@ -22,9 +22,14 @@ const app = express();
 // CORS
 app.use(cors({
   origin: process.env.NODE_ENV === 'production'
-    ? process.env.FRONTEND_URL
+    ? [
+        'http://construction-ai-frontend.s3-website.eu-north-1.amazonaws.com',
+        'http://13.53.190.109:3000'
+      ]
     : true,
-  credentials: true
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 // Body parsers

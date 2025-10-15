@@ -3,7 +3,7 @@ import { FilesManager } from '../../components/files';
 import axios from 'axios';
 import './FilesPage.css';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api/v1';
+const API_URL = import.meta.env.VITE_API_URL || '${API_URL}';
 
 export default function FilesPage() {
   const [projects, setProjects] = useState([]);

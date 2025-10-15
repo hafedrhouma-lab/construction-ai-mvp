@@ -33,7 +33,7 @@ class PDFProcessorService {
       logger.info(`📊 PDF has ${totalPages} pages`);
 
       const uploadedPages = [];
-      const BATCH_SIZE = 10; // Upload 10 pages at once
+      const BATCH_SIZE = 3; // Upload 10 pages at once
 
       // Process and upload in batches
       for (let i = 0; i < totalPages; i += BATCH_SIZE) {

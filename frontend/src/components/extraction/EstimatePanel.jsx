@@ -53,7 +53,7 @@ export default function EstimatePanel({ estimate }) {
       </div>
 
       <button
-        onClick={() => window.open(`http://localhost:3001/api/v1/estimates/${est.id}/export`, '_blank')}
+        onClick={() => window.open(`${import.meta.env.VITE_API_URL}/estimates/${est.id}/export`, '_blank')}
         className="download-btn"
       >
         📥 Download Export (AI vs Human Delta)
