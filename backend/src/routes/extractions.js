@@ -1,5 +1,5 @@
 // routes/extractions.js
-// COMPLETE FIXED VERSION - All endpoints working + extraction limit tracking
+// COMPLETE VERSION - v1/v2 prompt support + extraction limit tracking
 
 import express from 'express';
 import { getExtractor } from '../services/ai/index.js';
@@ -18,9 +18,30 @@ const router = express.Router();
 // Initialize AI extractor
 const openAIExtractor = getExtractor('openai');
 
-// Extraction prompt
-const promptPath = path.join(__dirname, '../services/ai/prompts/extraction_v1.txt');
-const EXTRACTION_PROMPT = await fs.readFile(promptPath, 'utf-8');
+/**
+ * Helper: Flatten rich v2 response to simple line items
+ */
+function flattenToLineItems(richData) {
+  const items = [];
+
+  // Extract from quantifiable_items
+  if (richData.quantifiable_items && Array.isArray(richData.quantifiable_items)) {
+    richData.quantifiable_items.forEach(item => {
+      items.push({
+        line_number: item.line_number || items.length + 1,
+        description: item.description,
+        quantity: item.quantity,
+        unit: item.unit,
+        unit_price: item.unit_price || null,
+        total_price: item.total_price || null,
+        confidence_score: item.confidence_score || 0.9,
+        source: 'ai'
+      });
+    });
+  }
+
+  return items;
+}
 
 /**
  * POST /api/v1/extractions/start
@@ -28,11 +49,15 @@ const EXTRACTION_PROMPT = await fs.readFile(promptPath, 'utf-8');
  */
 router.post('/start', async (req, res) => {
   try {
-    const { file_id, page_number } = req.body;
+    const { file_id, page_number, use_enhanced_extraction } = req.body;
 
     if (!file_id || !page_number) {
       return res.status(400).json({ error: 'file_id and page_number required' });
     }
+
+    // Determine which prompt to use based on request flag
+    const useV2 = use_enhanced_extraction === true;
+    console.log(`🎯 Extraction request: ${useV2 ? 'ENHANCED (v2)' : 'STANDARD (v1)'} for page ${page_number}`);
 
     // Check if extraction already exists
     const existingResult = await pool.query(
@@ -74,6 +99,7 @@ router.post('/start', async (req, res) => {
                completed_at = NULL,
                raw_response = NULL,
                extracted_items = NULL,
+               extracted_metadata = NULL,
                confidence_score = NULL,
                processing_time_ms = NULL,
                extraction_attempts = extraction_attempts + 1
@@ -99,6 +125,7 @@ router.post('/start', async (req, res) => {
                completed_at = NULL,
                raw_response = NULL,
                extracted_items = NULL,
+               extracted_metadata = NULL,
                confidence_score = NULL,
                processing_time_ms = NULL,
                extraction_attempts = extraction_attempts + 1
@@ -128,7 +155,8 @@ router.post('/start', async (req, res) => {
              SET status = 'pending', 
                  completed_at = NULL,
                  raw_response = NULL,
-                 extracted_items = NULL
+                 extracted_items = NULL,
+                 extracted_metadata = NULL
              WHERE id = $1`,
             [existing.id]
           );
@@ -162,7 +190,7 @@ router.post('/start', async (req, res) => {
     }
 
     // Trigger background processing
-    processExtraction(extractionId).catch(error => {
+    processExtraction(extractionId, useV2).catch(error => {
       console.error('❌ Background extraction failed:', error);
     });
 
@@ -181,12 +209,17 @@ router.post('/start', async (req, res) => {
 /**
  * Background processing function
  */
-async function processExtraction(extractionId) {
+async function processExtraction(extractionId, useV2 = false) {
   let tempPdfPath = null;
   let imagePath = null;
 
   try {
-    console.log(`⚙️  Processing ${extractionId}...`);
+    console.log(`⚙️  Processing ${extractionId} with ${useV2 ? 'v2 (enhanced)' : 'v1 (standard)'} prompt...`);
+
+    // Load appropriate prompt
+    const promptVersion = useV2 ? 'v2' : 'v1';
+    const promptPath = path.join(__dirname, `../services/ai/prompts/extraction_${promptVersion}.txt`);
+    const PROMPT = await fs.readFile(promptPath, 'utf-8');
 
     // 1. Get extraction record
     const extractionResult = await pool.query(
@@ -232,19 +265,78 @@ async function processExtraction(extractionId) {
     const imageBase64 = await pdfToImageService.imageToBase64DataUrl(imagePath);
 
     // 6. Extract with OpenAI
-    console.log(`🤖 Calling OpenAI...`);
+    console.log(`🤖 Calling OpenAI with ${useV2 ? 'v2' : 'v1'} prompt...`);
     const aiResult = await openAIExtractor.extract(
-      imageBase64,  // Use base64 data URL
-      EXTRACTION_PROMPT,
+      imageBase64,
+      PROMPT, // Use dynamically loaded prompt
       { page_number: extraction.page_number }
     );
 
     const processingTime = Date.now() - startTime;
     console.log(`✅ OpenAI responded in ${processingTime}ms`);
-    console.log(`   Found ${aiResult.line_items.length} line items`);
 
-    // 7. Save line items to database
-    for (const item of aiResult.line_items) {
+    // DEBUG: Log the actual response structure
+    console.log(`🔍 RAW AI Response:`, JSON.stringify(aiResult, null, 2));
+
+    // 7. Process based on prompt version
+    let lineItemsToSave;
+    let metadataToSave;
+
+    if (useV2) {
+      // v2: Rich extraction
+      console.log(`📊 Processing v2 extraction...`);
+
+      // Handle different response formats
+      let extractedData = aiResult;
+
+      // CRITICAL: Check if actual data is in raw_response as a string
+      if (aiResult.raw_response && typeof aiResult.raw_response === 'string') {
+        console.log(`🔧 Parsing stringified raw_response...`);
+        try {
+          extractedData = JSON.parse(aiResult.raw_response);
+          console.log(`✅ Successfully parsed raw_response`);
+        } catch (err) {
+          console.error(`❌ Failed to parse raw_response:`, err.message);
+          extractedData = aiResult;
+        }
+      }
+
+      // Check if response is wrapped in extraction object
+      if (extractedData.extraction) {
+        console.log(`🔧 Unwrapping nested 'extraction' object`);
+        extractedData = extractedData.extraction;
+      }
+
+      // Log what we found
+      console.log(`   Page Type: ${extractedData.page_type || 'Unknown'}`);
+      console.log(`   Sheet Number: ${extractedData.sheet_number || 'N/A'}`);
+      console.log(`   Sheet Title: ${extractedData.sheet_title || 'N/A'}`);
+      console.log(`   Trades: ${extractedData.trades_affected?.join(', ') || 'None'}`);
+      console.log(`   Details: ${extractedData.details?.length || 0}`);
+      console.log(`   General Notes: ${extractedData.general_notes?.length || 0}`);
+      console.log(`   Quantifiable items: ${extractedData.quantifiable_items?.length || 0}`);
+
+      lineItemsToSave = flattenToLineItems(extractedData);
+
+      // Store the full extracted data (not the wrapper)
+      metadataToSave = {
+        ...extractedData,
+        // Preserve metadata from wrapper
+        tokens_used: aiResult.tokens_used || extractedData.tokens_used,
+        processing_time_ms: aiResult.processing_time_ms || processingTime,
+        model_version: aiResult.model_version || 'gpt-4o'
+      };
+    } else {
+      // v1: Simple extraction
+      console.log(`📊 Processing v1 extraction...`);
+      console.log(`   Found ${aiResult.line_items?.length || 0} line items`);
+
+      lineItemsToSave = aiResult.line_items || [];
+      metadataToSave = null;
+    }
+
+    // 8. Save line items to database
+    for (const item of lineItemsToSave) {
       await pool.query(
         `INSERT INTO line_items (
           extraction_id, line_number, 
@@ -262,31 +354,33 @@ async function processExtraction(extractionId) {
           item.unit_price,
           item.total_price,
           // Original values (for comparison in export)
-          item.description,     // Same as current initially
-          item.quantity,        // Same as current initially
-          item.unit,           // Same as current initially
-          item.unit_price,     // Same as current initially
-          item.total_price,    // Same as current initially
-          item.confidence_score,
-          'ai'
+          item.description,
+          item.quantity,
+          item.unit,
+          item.unit_price,
+          item.total_price,
+          item.confidence_score || 0.9,
+          item.source || 'ai'
         ]
       );
     }
 
-    // 8. Update extraction as completed
+    // 9. Update extraction as completed
     await pool.query(
       `UPDATE extractions 
        SET status = 'completed',
            completed_at = NOW(),
            raw_response = $1,
            extracted_items = $2,
-           confidence_score = $3,
-           processing_time_ms = $4
-       WHERE id = $5`,
+           extracted_metadata = $3,
+           confidence_score = $4,
+           processing_time_ms = $5
+       WHERE id = $6`,
       [
-        JSON.stringify(aiResult.raw_response),
-        JSON.stringify(aiResult.line_items),
-        aiResult.confidence_score,
+        JSON.stringify(aiResult),
+        JSON.stringify(lineItemsToSave),
+        metadataToSave ? JSON.stringify(metadataToSave) : null,
+        aiResult.confidence_score || 0.9,
         processingTime,
         extractionId
       ]

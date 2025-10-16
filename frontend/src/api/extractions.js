@@ -1,54 +1,68 @@
-// frontend/src/api/extractions.js
+// api/extractions.js
+// Add enhanced_extraction flag support
+
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api/v1';
 
 export const extractionsApi = {
-  async startExtraction(fileId, pageNumber) {
-    const res = await fetch(`${API_URL}/extractions/start`, {
+  startExtraction: async (fileId, pageNumber, useEnhanced = false) => {
+    const response = await fetch(`${API_URL}/extractions/start`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ file_id: fileId, page_number: pageNumber })
+      body: JSON.stringify({
+        file_id: fileId,
+        page_number: pageNumber,
+        use_enhanced_extraction: useEnhanced // NEW: Pass flag to backend
+      })
     });
-    if (!res.ok) throw new Error(await res.text());
-    return res.json();
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to start extraction');
+    }
+
+    return response.json();
   },
 
-  async getExtraction(extractionId) {
-    const res = await fetch(`${API_URL}/extractions/${extractionId}`);
-    if (!res.ok) throw new Error(await res.text());
-    return res.json();
+  getExtraction: async (id) => {
+    const response = await fetch(`${API_URL}/extractions/${id}`);
+    if (!response.ok) throw new Error('Failed to get extraction');
+    return response.json();
   },
 
-  async getFileExtractions(fileId) {
-    const res = await fetch(`${API_URL}/extractions/file/${fileId}`);
-    if (!res.ok) throw new Error(await res.text());
-    return res.json();
+  getFileExtractions: async (fileId) => {
+    const response = await fetch(`${API_URL}/extractions/file/${fileId}`);
+    if (!response.ok) throw new Error('Failed to get extractions');
+    return response.json();
   },
 
-  async updateLineItem(itemId, data) {
-    const res = await fetch(`${API_URL}/line-items/${itemId}`, {
+  updateLineItem: async (itemId, updates) => {
+    const response = await fetch(`${API_URL}/line-items/${itemId}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
+      body: JSON.stringify(updates)
     });
-    if (!res.ok) throw new Error(await res.text());
-    return res.json();
+
+    if (!response.ok) throw new Error('Failed to update line item');
+    return response.json();
   },
 
-  async deleteLineItem(itemId) {
-    const res = await fetch(`${API_URL}/line-items/${itemId}`, {
+  deleteLineItem: async (itemId) => {
+    const response = await fetch(`${API_URL}/line-items/${itemId}`, {
       method: 'DELETE'
     });
-    if (!res.ok) throw new Error(await res.text());
-    return res.json();
+
+    if (!response.ok) throw new Error('Failed to delete line item');
+    return response.json();
   },
 
-  async generateEstimate(fileId) {
-    const res = await fetch(`${API_URL}/estimates/generate`, {
+  generateEstimate: async (fileId) => {
+    const response = await fetch(`${API_URL}/estimates/generate`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ file_id: fileId })
     });
-    if (!res.ok) throw new Error(await res.text());
-    return res.json();
+
+    if (!response.ok) throw new Error('Failed to generate estimate');
+    return response.json();
   }
 };

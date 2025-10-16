@@ -1,5 +1,5 @@
 // pages/ExtractionFlow.jsx
-// CLEAN: Filters files by project of loaded file
+// COMPLETE VERSION - With AI Intelligence Panel for rich extraction
 
 import { useState, useEffect } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
@@ -42,6 +42,8 @@ export default function ExtractionFlow() {
   const [extraction, setExtraction] = useState(null);
   const [loading, setLoading] = useState(false);
   const [estimate, setEstimate] = useState(null);
+  const [showMetadata, setShowMetadata] = useState(false); // For AI Intelligence panel
+  const [useEnhancedExtraction, setUseEnhancedExtraction] = useState(false); // NEW: Toggle for v2 prompt
 
   // Get relevant pages array
   const relevantPages = selectedFile?.relevant_pages && selectedFile.relevant_pages.length > 0
@@ -116,7 +118,7 @@ export default function ExtractionFlow() {
   const handleExtractPage = async () => {
     try {
       setLoading(true);
-      await extractionsApi.startExtraction(selectedFile.id, currentPage);
+      await extractionsApi.startExtraction(selectedFile.id, currentPage, useEnhancedExtraction); // Pass flag
 
       let attempts = 0;
       const pollInterval = setInterval(async () => {
@@ -281,6 +283,251 @@ export default function ExtractionFlow() {
                         )}
                       </div>
                     )}
+
+                    {/* 🧠 AI INTELLIGENCE PANEL */}
+                    {extraction && extraction.extracted_metadata && (
+                      <div style={{
+                        padding: '16px',
+                        marginBottom: '16px',
+                        borderRadius: '8px',
+                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                        color: 'white'
+                      }}>
+                        <div style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          marginBottom: showMetadata ? '16px' : '0'
+                        }}>
+                          <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+                            <span style={{fontSize: '20px'}}>🔍</span>
+                            <strong style={{fontSize: '16px'}}>Enhanced Document Intelligence</strong>
+                            <span style={{
+                              padding: '3px 10px',
+                              background: 'rgba(59, 130, 246, 0.3)',
+                              border: '1px solid rgba(255,255,255,0.5)',
+                              borderRadius: '12px',
+                              fontSize: '10px',
+                              fontWeight: '600',
+                              letterSpacing: '0.8px',
+                              textTransform: 'uppercase'
+                            }}>
+                              Coming Soon
+                            </span>
+                          </div>
+                          <button
+                            onClick={() => setShowMetadata(!showMetadata)}
+                            style={{
+                              padding: '6px 12px',
+                              background: 'rgba(255,255,255,0.2)',
+                              color: 'white',
+                              border: '1px solid rgba(255,255,255,0.3)',
+                              borderRadius: '6px',
+                              cursor: 'pointer',
+                              fontSize: '13px',
+                              fontWeight: '500'
+                            }}
+                          >
+                            {showMetadata ? '▼ Hide' : '▶ Show Details'}
+                          </button>
+                        </div>
+
+                        {showMetadata && (
+                          <div style={{
+                            background: 'rgba(255,255,255,0.95)',
+                            color: '#1e293b',
+                            padding: '16px',
+                            borderRadius: '6px'
+                          }}>
+                            {/* Page Type */}
+                            {extraction.extracted_metadata.page_type && (
+                              <div style={{marginBottom: '16px'}}>
+                                <strong style={{color: '#475569', fontSize: '13px', display: 'block', marginBottom: '6px'}}>📄 PAGE TYPE</strong>
+                                <span style={{
+                                  display: 'inline-block',
+                                  padding: '6px 12px',
+                                  background: '#3b82f6',
+                                  color: 'white',
+                                  borderRadius: '6px',
+                                  fontSize: '14px',
+                                  fontWeight: '500'
+                                }}>
+                                  {extraction.extracted_metadata.page_type}
+                                </span>
+                              </div>
+                            )}
+
+                            {/* Sheet Info */}
+                            {(extraction.extracted_metadata.sheet_number || extraction.extracted_metadata.sheet_title) && (
+                              <div style={{marginBottom: '16px'}}>
+                                <strong style={{color: '#475569', fontSize: '13px', display: 'block', marginBottom: '6px'}}>📋 SHEET INFORMATION</strong>
+                                <div style={{fontSize: '14px', color: '#1e293b', lineHeight: '1.6'}}>
+                                  {extraction.extracted_metadata.sheet_number && (
+                                    <div><strong>Number:</strong> {extraction.extracted_metadata.sheet_number}</div>
+                                  )}
+                                  {extraction.extracted_metadata.sheet_title && (
+                                    <div><strong>Title:</strong> {extraction.extracted_metadata.sheet_title}</div>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Project Info */}
+                            {extraction.extracted_metadata.project_info && (
+                              <div style={{marginBottom: '16px'}}>
+                                <strong style={{color: '#475569', fontSize: '13px', display: 'block', marginBottom: '6px'}}>🏗️ PROJECT INFORMATION</strong>
+                                <div style={{fontSize: '14px', color: '#1e293b', lineHeight: '1.6'}}>
+                                  {extraction.extracted_metadata.project_info.project_name && (
+                                    <div><strong>Name:</strong> {extraction.extracted_metadata.project_info.project_name}</div>
+                                  )}
+                                  {extraction.extracted_metadata.project_info.sheet_date && (
+                                    <div><strong>Date:</strong> {extraction.extracted_metadata.project_info.sheet_date}</div>
+                                  )}
+                                  {extraction.extracted_metadata.project_info.revision && (
+                                    <div><strong>Revision:</strong> {extraction.extracted_metadata.project_info.revision}</div>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Trades Affected */}
+                            {extraction.extracted_metadata.trades_affected?.length > 0 && (
+                              <div style={{marginBottom: '16px'}}>
+                                <strong style={{color: '#475569', fontSize: '13px', display: 'block', marginBottom: '6px'}}>👷 TRADES AFFECTED</strong>
+                                <div style={{display: 'flex', gap: '6px', flexWrap: 'wrap'}}>
+                                  {extraction.extracted_metadata.trades_affected.map(trade => (
+                                    <span key={trade} style={{
+                                      padding: '4px 10px',
+                                      background: '#10b981',
+                                      color: 'white',
+                                      borderRadius: '4px',
+                                      fontSize: '13px'
+                                    }}>
+                                      {trade}
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* General Notes */}
+                            {extraction.extracted_metadata.general_notes?.length > 0 && (
+                              <div style={{marginBottom: '16px'}}>
+                                <strong style={{color: '#475569', fontSize: '13px', display: 'block', marginBottom: '6px'}}>⚠️ IMPORTANT NOTES</strong>
+                                <ul style={{margin: '0', padding: '0 0 0 20px', fontSize: '14px'}}>
+                                  {extraction.extracted_metadata.general_notes.map((note, idx) => (
+                                    <li key={idx} style={{marginBottom: '6px', color: '#dc2626', lineHeight: '1.5'}}>{note}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+
+                            {/* Sheet References */}
+                            {extraction.extracted_metadata.references_to_other_sheets?.length > 0 && (
+                              <div style={{marginBottom: '16px'}}>
+                                <strong style={{color: '#475569', fontSize: '13px', display: 'block', marginBottom: '6px'}}>🔗 RELATED SHEETS</strong>
+                                <div style={{fontSize: '14px', color: '#3b82f6', fontWeight: '500'}}>
+                                  {extraction.extracted_metadata.references_to_other_sheets.join(', ')}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Special Requirements */}
+                            {extraction.extracted_metadata.special_requirements?.length > 0 && (
+                              <div style={{marginBottom: '16px'}}>
+                                <strong style={{color: '#475569', fontSize: '13px', display: 'block', marginBottom: '6px'}}>🔒 SPECIAL REQUIREMENTS</strong>
+                                <ul style={{margin: '0', padding: '0 0 0 20px', fontSize: '14px'}}>
+                                  {extraction.extracted_metadata.special_requirements.map((req, idx) => (
+                                    <li key={idx} style={{marginBottom: '6px', color: '#ea580c', lineHeight: '1.5'}}>{req}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+
+                            {/* Ambiguities */}
+                            {extraction.extracted_metadata.ambiguities?.length > 0 && (
+                              <div style={{marginBottom: '16px'}}>
+                                <strong style={{color: '#475569', fontSize: '13px', display: 'block', marginBottom: '6px'}}>❓ NEEDS CLARIFICATION</strong>
+                                <ul style={{margin: '0', padding: '0 0 0 20px', fontSize: '14px'}}>
+                                  {extraction.extracted_metadata.ambiguities.map((item, idx) => (
+                                    <li key={idx} style={{marginBottom: '6px', color: '#dc2626', lineHeight: '1.5'}}>{item}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+
+                            {/* Technical Details - Collapsible */}
+                            <div style={{
+                              marginTop: '16px',
+                              paddingTop: '16px',
+                              borderTop: '1px solid #e2e8f0'
+                            }}>
+                              <div style={{
+                                fontSize: '12px',
+                                color: '#64748b',
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                marginBottom: '8px'
+                              }}>
+                                <span>Model: {extraction.extracted_metadata.model_version || extraction.model_version || 'gpt-4o'}</span>
+                                <span>Tokens: {extraction.extracted_metadata.tokens_used || extraction.tokens_used || 'N/A'}</span>
+                                <span>Time: {extraction.extracted_metadata.processing_time_ms || extraction.processing_time_ms || 'N/A'}ms</span>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Enhanced Extraction Option - Always visible */}
+                    <div style={{
+                      padding: '12px 16px',
+                      marginBottom: '12px',
+                      background: 'linear-gradient(135deg, #667eea15 0%, #764ba215 100%)',
+                      border: '1px solid #667eea30',
+                      borderRadius: '8px'
+                    }}>
+                      <label style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '10px',
+                        cursor: 'pointer',
+                        fontSize: '14px',
+                        color: '#1e293b'
+                      }}>
+                        <input
+                          type="checkbox"
+                          checked={useEnhancedExtraction}
+                          onChange={(e) => setUseEnhancedExtraction(e.target.checked)}
+                          disabled={loading}
+                          style={{
+                            width: '18px',
+                            height: '18px',
+                            cursor: loading ? 'not-allowed' : 'pointer'
+                          }}
+                        />
+                        <div style={{flex: 1}}>
+                          <div style={{fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px'}}>
+                            <span>🔍 Use Enhanced Document Intelligence</span>
+                            <span style={{
+                              padding: '2px 6px',
+                              background: '#3b82f6',
+                              color: 'white',
+                              borderRadius: '8px',
+                              fontSize: '9px',
+                              fontWeight: '700',
+                              letterSpacing: '0.5px',
+                              textTransform: 'uppercase'
+                            }}>
+                              Coming Soon
+                            </span>
+                          </div>
+                          <div style={{fontSize: '13px', color: '#64748b', marginTop: '2px'}}>
+                            Extract page type, trades, notes, cross-references, and more
+                          </div>
+                        </div>
+                      </label>
+                    </div>
 
                     <ExtractionButton
                       loading={loading}
