@@ -23,7 +23,7 @@ const app = express();
 app.use(cors({
   origin: process.env.NODE_ENV === 'production'
     ? [
-        'http://construction-ai-frontend.s3-website.eu-north-1.amazonaws.com',
+        'http://quickbids-app-1760604489.s3-website.eu-north-1.amazonaws.com',
         'http://13.53.190.109:3000'
       ]
     : true,
