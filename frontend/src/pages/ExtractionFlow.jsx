@@ -223,16 +223,26 @@ export default function ExtractionFlow() {
                     <div className="filter-stats">
                       Showing <strong>{relevantPages.length}</strong> relevant pages out of <strong>{selectedFile.page_count}</strong> total pages
                     </div>
-                    {/* COST DISPLAY - ONLY ONCE */}
-                    {costEstimate && (
-                      <div style={{marginTop: '8px', fontSize: '14px', color: '#059669', fontWeight: '500'}}>
-                        💰 <strong>Estimated AI Cost:</strong> ${costEstimate.total.toFixed(2)}
-                        <span style={{color: '#6b7280', fontSize: '13px', marginLeft: '8px'}}>
-                          (${costEstimate.perPage.toFixed(4)}/page × {relevantPages.length} pages)
-                        </span>
-                      </div>
-                    )}
                   </div>
+                </div>
+              </div>
+            )}
+
+            {/* Cost Estimate - Always show when file selected */}
+            {costEstimate && (
+              <div style={{
+                padding: '16px',
+                marginTop: isFiltered ? '0' : '16px',
+                marginBottom: '16px',
+                background: isFiltered ? 'transparent' : '#f0f9ff',
+                border: isFiltered ? 'none' : '2px solid #3b82f6',
+                borderRadius: '8px'
+              }}>
+                <div style={{fontSize: '14px', color: '#059669', fontWeight: '500'}}>
+                  💰 <strong>Estimated AI Cost:</strong> ${costEstimate.total.toFixed(2)}
+                  <span style={{color: '#6b7280', fontSize: '13px', marginLeft: '8px'}}>
+                    (${costEstimate.perPage.toFixed(4)}/page × {relevantPages.length} pages)
+                  </span>
                 </div>
               </div>
             )}
