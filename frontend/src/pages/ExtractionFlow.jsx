@@ -1,4 +1,6 @@
 // pages/ExtractionFlow.jsx
+// CLEAN: Filters files by project of loaded file
+
 import { useState, useEffect } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import {
@@ -12,7 +14,22 @@ import {
 import { extractionsApi } from '../api/extractions';
 import './ExtractionFlow.css';
 
-const API_URL = import.meta.env.VITE_API_URL || '${API_URL}';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api/v1';
+
+const estimateExtractionCost = (pageCount) => {
+  const INPUT_COST_PER_1M = 2.50;
+  const OUTPUT_COST_PER_1M = 10.00;
+  const AVG_INPUT_TOKENS = 2000;
+  const AVG_OUTPUT_TOKENS = 800;
+
+  const inputCost = (pageCount * AVG_INPUT_TOKENS / 1_000_000) * INPUT_COST_PER_1M;
+  const outputCost = (pageCount * AVG_OUTPUT_TOKENS / 1_000_000) * OUTPUT_COST_PER_1M;
+
+  return {
+    total: inputCost + outputCost,
+    perPage: (inputCost + outputCost) / pageCount
+  };
+};
 
 export default function ExtractionFlow() {
   const { fileId: urlFileId } = useParams();
@@ -20,11 +37,31 @@ export default function ExtractionFlow() {
   const fileIdFromQuery = searchParams.get('fileId');
 
   const [selectedFile, setSelectedFile] = useState(null);
+  const [projectId, setProjectId] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [extraction, setExtraction] = useState(null);
   const [loading, setLoading] = useState(false);
   const [estimate, setEstimate] = useState(null);
 
+  // Get relevant pages array
+  const relevantPages = selectedFile?.relevant_pages && selectedFile.relevant_pages.length > 0
+    ? selectedFile.relevant_pages
+    : selectedFile
+    ? Array.from({ length: selectedFile.page_count }, (_, i) => i + 1)
+    : [];
+
+  const isFiltered = selectedFile?.relevant_pages && selectedFile.relevant_pages.length > 0;
+
+  const costEstimate = selectedFile && relevantPages.length > 0
+  ? estimateExtractionCost(relevantPages.length)
+  : null;
+
+  const extractionAttempts = extraction?.extraction_attempts || 0;
+  const extractionLimit = 2;
+  const attemptsRemaining = extractionLimit - extractionAttempts;
+  const isLimitReached = extractionAttempts >= extractionLimit;
+
+  // Load file by ID
   useEffect(() => {
     const fileId = urlFileId || fileIdFromQuery;
     if (fileId && !selectedFile) {
@@ -32,16 +69,28 @@ export default function ExtractionFlow() {
     }
   }, [urlFileId, fileIdFromQuery]);
 
+  // Initialize to page 1 when file is selected
+  useEffect(() => {
+    if (selectedFile) {
+      setCurrentPage(1);
+    }
+  }, [selectedFile?.id]);
+
   const loadFileById = async (fileId) => {
     try {
       const response = await fetch(`${API_URL}/files/${fileId}`);
       const file = await response.json();
+      console.log('📄 Loaded file:', file);
+      console.log('🎯 Topics:', file.topics);
+      console.log('📊 Relevant pages:', file.relevant_pages);
       setSelectedFile(file);
+      setProjectId(file.project_id);
     } catch (error) {
       console.error('Failed to load file:', error);
     }
   };
 
+  // Load extraction for current page
   useEffect(() => {
     if (selectedFile && currentPage) {
       loadPageExtraction();
@@ -118,6 +167,26 @@ export default function ExtractionFlow() {
     }
   };
 
+  // Navigate to previous relevant page
+  const handlePreviousPage = () => {
+    const currentIndex = relevantPages.indexOf(currentPage);
+    if (currentIndex > 0) {
+      setCurrentPage(relevantPages[currentIndex - 1]);
+    }
+  };
+
+  // Navigate to next relevant page
+  const handleNextPage = () => {
+    const currentIndex = relevantPages.indexOf(currentPage);
+    if (currentIndex < relevantPages.length - 1) {
+      setCurrentPage(relevantPages[currentIndex + 1]);
+    }
+  };
+
+  const currentIndex = relevantPages.indexOf(currentPage);
+  const hasPrev = currentIndex > 0;
+  const hasNext = currentIndex < relevantPages.length - 1;
+
   return (
     <div className="extraction-flow">
       <header className="header">
@@ -128,44 +197,108 @@ export default function ExtractionFlow() {
       </header>
 
       <div className="container">
+        {/* File Selection */}
         <div className="section-card">
           <h2 className="section-title">1. Select File</h2>
           <FileSelector
             selectedFile={selectedFile}
             onSelectFile={setSelectedFile}
+            projectId={projectId}
           />
         </div>
 
         {selectedFile && (
           <>
-            {/* HORIZONTAL LAYOUT: Thumbnail + Controls */}
+            {/* Show filtering info if file is filtered */}
+            {isFiltered && (
+              <div className="filter-info-banner">
+                <div className="filter-info-content">
+                  <span className="filter-icon">🎯</span>
+                  <div className="filter-details">
+                    <div className="filter-topics">
+                      <strong>Topics:</strong> {selectedFile.topics?.join(', ') || 'None'}
+                    </div>
+                    <div className="filter-stats">
+                      Showing <strong>{relevantPages.length}</strong> relevant pages out of <strong>{selectedFile.page_count}</strong> total pages
+                    </div>
+                    {/* COST DISPLAY - ONLY ONCE */}
+                    {costEstimate && (
+                      <div style={{marginTop: '8px', fontSize: '14px', color: '#059669', fontWeight: '500'}}>
+                        💰 <strong>Estimated AI Cost:</strong> ${costEstimate.total.toFixed(2)}
+                        <span style={{color: '#6b7280', fontSize: '13px', marginLeft: '8px'}}>
+                          (${costEstimate.perPage.toFixed(4)}/page × {relevantPages.length} pages)
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Navigation & Preview */}
             <div className="section-card">
               <h2 className="section-title">2. Navigate & Extract</h2>
 
               <div className="extraction-horizontal">
-                {/* LEFT: Preview Thumbnail */}
+                {/* Preview Thumbnail */}
                 <div className="extraction-thumbnail">
                   <MediaPreview
                     file={selectedFile}
                     currentPage={currentPage}
                     compact={true}
+                    key={`${selectedFile.id}-${currentPage}`}
                   />
+                  <div className="preview-hint">
+                    💡 Click "Load Preview" only when needed to save bandwidth
+                  </div>
                 </div>
 
-                {/* RIGHT: Controls */}
+                {/* Controls */}
                 <div className="extraction-controls">
                   <PageNavigator
                     currentPage={currentPage}
                     totalPages={selectedFile.page_count}
+                    relevantPages={relevantPages}
                     onPageChange={setCurrentPage}
                   />
 
                   <div style={{ marginTop: '16px' }}>
+                    {/* Extraction attempts warning */}
+                    {extraction && attemptsRemaining <= 1 && (
+                      <div style={{
+                        padding: '12px',
+                        marginBottom: '12px',
+                        borderRadius: '6px',
+                        backgroundColor: attemptsRemaining === 0 ? '#fee2e2' : '#fef3c7',
+                        border: `1px solid ${attemptsRemaining === 0 ? '#fca5a5' : '#fde047'}`,
+                        fontSize: '14px',
+                        color: attemptsRemaining === 0 ? '#991b1b' : '#92400e'
+                      }}>
+                        {attemptsRemaining === 0 ? (
+                          <>🚫 <strong>Re-extract limit reached.</strong> This page has been extracted {extractionAttempts} times (limit: {extractionLimit}).</>
+                        ) : (
+                          <>⚠️ <strong>Last re-extract available!</strong> {attemptsRemaining} of {extractionLimit} attempts remaining.</>
+                        )}
+                      </div>
+                    )}
+
                     <ExtractionButton
                       loading={loading}
                       hasExtraction={!!extraction}
                       onExtract={handleExtractPage}
+                      disabled={loading || isLimitReached}
                     />
+
+                    {isLimitReached && !loading && (
+                      <p style={{
+                        marginTop: '8px',
+                        fontSize: '13px',
+                        color: '#6b7280',
+                        textAlign: 'center'
+                      }}>
+                        Contact support if you need to re-extract this page again.
+                      </p>
+                    )}
                   </div>
 
                   {loading && (
@@ -185,6 +318,7 @@ export default function ExtractionFlow() {
               </div>
             </div>
 
+            {/* Extracted Items */}
             {extraction && (
               <div className="section-card">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
@@ -206,26 +340,28 @@ export default function ExtractionFlow() {
                   onItemUpdated={loadPageExtraction}
                 />
 
+                {/* Smart page navigation footer */}
                 <div className="page-nav-footer">
                   <button
-                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                    disabled={currentPage === 1}
+                    onClick={handlePreviousPage}
+                    disabled={!hasPrev}
                     className="nav-button"
                   >
-                    ← Previous Page
+                    ← Previous Page {hasPrev && `(${relevantPages[currentIndex - 1]})`}
                   </button>
 
                   <button
-                    onClick={() => setCurrentPage(p => Math.min(selectedFile.page_count, p + 1))}
-                    disabled={currentPage === selectedFile.page_count}
+                    onClick={handleNextPage}
+                    disabled={!hasNext}
                     className="nav-button"
                   >
-                    Next Page →
+                    Next Page {hasNext && `(${relevantPages[currentIndex + 1]})`} →
                   </button>
                 </div>
               </div>
             )}
 
+            {/* Generate Estimate */}
             <div className="section-card">
               <h2 className="section-title">4. Generate Estimate</h2>
 

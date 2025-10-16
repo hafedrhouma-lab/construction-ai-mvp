@@ -1,10 +1,23 @@
 import { useState, useRef } from 'react';
-import { Upload, X, FileText, CheckCircle, Loader, AlertCircle } from 'lucide-react';
+import { Upload, X, FileText, CheckCircle, Loader, AlertCircle, DollarSign } from 'lucide-react';
 import axios from 'axios';
 
 import './FileUpload.css';
 
 const API_URL = import.meta.env.VITE_API_URL || '${API_URL}';
+
+const TOPICS = {
+  'striping': 'Striping',
+  'thermoplastic_lines': 'Thermoplastic Lines',
+  'crosswalks': 'Crosswalks',
+  'stop_bars': 'Stop Bars',
+  'symbols_legends': 'Symbols & Legends',
+  'curb_painting': 'Curb Painting',
+  'signage': 'Signage (ADA & Posts)',
+  'line_removal': 'Line Removal',
+  'quantities_tables': 'Quantities Tables',
+  'specification_notes': 'Specification Notes'
+};
 
 export default function FileUpload({ projectId, onUploadComplete }) {
   const [dragActive, setDragActive] = useState(false);
@@ -13,8 +26,10 @@ export default function FileUpload({ projectId, onUploadComplete }) {
   const [processingProgress, setProcessingProgress] = useState(0);
   const [currentFile, setCurrentFile] = useState(null);
   const [fileId, setFileId] = useState(null);
-  const [status, setStatus] = useState(null); // uploading, processing, ready, error
+  const [status, setStatus] = useState(null);
   const [error, setError] = useState(null);
+  const [pageCount, setPageCount] = useState(null);
+  const [selectedTopics, setSelectedTopics] = useState(['striping']); // 🚀 NEW: Default to striping
   const fileInputRef = useRef(null);
   const pollingInterval = useRef(null);
 
@@ -29,7 +44,6 @@ export default function FileUpload({ projectId, onUploadComplete }) {
     }
   };
 
-  // Handle drop
   const handleDrop = (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -40,7 +54,6 @@ export default function FileUpload({ projectId, onUploadComplete }) {
     }
   };
 
-  // Handle file selection
   const handleChange = (e) => {
     e.preventDefault();
     if (e.target.files && e.target.files[0]) {
@@ -48,7 +61,6 @@ export default function FileUpload({ projectId, onUploadComplete }) {
     }
   };
 
-  // Handle file upload
   const handleFile = async (file) => {
     // Validate file type
     if (file.type !== 'application/pdf') {
@@ -65,10 +77,16 @@ export default function FileUpload({ projectId, onUploadComplete }) {
 
     setCurrentFile(file);
     setError(null);
+
+    // 🚀 NEW: Try to get page count for cost estimation
+    // This is approximate - real count comes after upload
+    // Rough estimate: ~10KB per page for typical construction drawings
+    const estimatedPages = Math.ceil(file.size / 10240);
+    setPageCount(estimatedPages);
+
     await uploadFile(file);
   };
 
-  // Upload file to backend
   const uploadFile = async (file) => {
     setUploading(true);
     setStatus('uploading');
@@ -78,8 +96,10 @@ export default function FileUpload({ projectId, onUploadComplete }) {
       const formData = new FormData();
       formData.append('file', file);
       formData.append('project_id', projectId);
-
+      formData.append('topics', JSON.stringify(selectedTopics));
+      console.log('🎯 Topics:', selectedTopics);
       console.log('📤 Uploading file:', file.name, `(${(file.size / 1024 / 1024).toFixed(2)}MB)`);
+      console.log('🎯 Topic:', selectedTopics);
 
       const response = await axios.post(`${API_URL}/files/upload`, formData, {
         headers: {
@@ -98,7 +118,11 @@ export default function FileUpload({ projectId, onUploadComplete }) {
       setStatus('processing');
       setUploading(false);
 
-      // Start polling for processing status
+      // Update with actual page count
+      if (response.data.page_count) {
+        setPageCount(response.data.page_count);
+      }
+
       startPolling(response.data.id);
 
     } catch (err) {
@@ -109,11 +133,9 @@ export default function FileUpload({ projectId, onUploadComplete }) {
     }
   };
 
-  // Poll for processing status
   const startPolling = (id) => {
     console.log('🔄 Starting status polling for file:', id);
 
-    // Poll every 5 seconds
     pollingInterval.current = setInterval(async () => {
       try {
         const response = await axios.get(`${API_URL}/files/${id}`);
@@ -121,19 +143,16 @@ export default function FileUpload({ projectId, onUploadComplete }) {
 
         console.log('📊 File status:', file.status, file.metadata);
 
-        // Update progress if available
         if (file.metadata?.processingProgress) {
           setProcessingProgress(file.metadata.processingProgress);
         }
 
-        // Check if complete
         if (file.status === 'ready') {
           console.log('✅ Processing complete!');
           setStatus('ready');
           setProcessingProgress(100);
           clearInterval(pollingInterval.current);
 
-          // Notify parent component
           if (onUploadComplete) {
             onUploadComplete(file);
           }
@@ -147,10 +166,9 @@ export default function FileUpload({ projectId, onUploadComplete }) {
       } catch (err) {
         console.error('Failed to check status:', err);
       }
-    }, 5000); // Poll every 5 seconds
+    }, 5000);
   };
 
-  // Cancel upload
   const handleCancel = () => {
     if (pollingInterval.current) {
       clearInterval(pollingInterval.current);
@@ -162,24 +180,75 @@ export default function FileUpload({ projectId, onUploadComplete }) {
     setProcessingProgress(0);
     setError(null);
     setUploading(false);
+    setPageCount(null);
   };
 
-  // Trigger file input click
   const onButtonClick = () => {
     fileInputRef.current?.click();
   };
 
+  // 🚀 NEW: Calculate cost estimate
   return (
     <div className="file-upload">
       {/* Upload Area */}
       {!currentFile && (
-        <div
-          className={`file-upload__drop-zone ${dragActive ? 'file-upload__drop-zone--active' : ''}`}
-          onDragEnter={handleDrag}
-          onDragLeave={handleDrag}
-          onDragOver={handleDrag}
-          onDrop={handleDrop}
-        >
+        <>
+          {/* 🚀 NEW: Topic Selector */}
+          <div className="file-upload__topic-selector">
+            <label className="file-upload__topic-label">
+              Select Topics (one or more):
+            </label>
+
+            {/* Selected Topics Tags */}
+            <div className="file-upload__topic-tags">
+              {selectedTopics.map(topicKey => (
+                <span key={topicKey} className="file-upload__topic-tag">
+                  {TOPICS[topicKey]}
+                  <button
+                    type="button"
+                    onClick={() => setSelectedTopics(selectedTopics.filter(t => t !== topicKey))}
+                    className="file-upload__topic-tag-remove"
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+            </div>
+
+            {/* Dropdown to Add More */}
+            <select
+              value=""
+              onChange={(e) => {
+                if (e.target.value && !selectedTopics.includes(e.target.value)) {
+                  setSelectedTopics([...selectedTopics, e.target.value]);
+                }
+              }}
+              className="file-upload__topic-select"
+            >
+              <option value="">+ Add topic...</option>
+              {Object.entries(TOPICS).map(([value, label]) => (
+                <option
+                  key={value}
+                  value={value}
+                  disabled={selectedTopics.includes(value)}
+                >
+                  {label}
+                </option>
+              ))}
+            </select>
+
+            <p className="file-upload__topic-hint">
+              💡 Only pages relevant to selected topics will be extracted
+            </p>
+          </div>
+
+          <div
+            className={`file-upload__drop-zone ${dragActive ? 'file-upload__drop-zone--active' : ''}`}
+            onDragEnter={handleDrag}
+            onDragLeave={handleDrag}
+            onDragOver={handleDrag}
+            onDrop={handleDrop}
+          >
           <input
             ref={fileInputRef}
             type="file"
@@ -205,6 +274,7 @@ export default function FileUpload({ projectId, onUploadComplete }) {
             Select PDF File
           </button>
         </div>
+        </>
       )}
 
       {/* Upload Progress */}
@@ -220,6 +290,7 @@ export default function FileUpload({ projectId, onUploadComplete }) {
                 </p>
                 <p className="file-upload__file-size">
                   {(currentFile.size / 1024 / 1024).toFixed(2)} MB
+                  {pageCount && ` • ~${pageCount} pages`}
                 </p>
               </div>
             </div>

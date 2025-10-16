@@ -39,8 +39,8 @@ export default function FilesList({ projectId, refreshTrigger }) {
   }, [projectId, refreshTrigger]);
 
   // Delete file
-  const handleDelete = async (fileId) => {
-    if (!confirm('Are you sure you want to delete this file?')) {
+  const handleDelete = async (fileId, fileName) => {
+    if (!confirm(`Delete "${fileName}"? This cannot be undone.`)) {
       return;
     }
 
@@ -50,7 +50,8 @@ export default function FilesList({ projectId, refreshTrigger }) {
       fetchFiles();
     } catch (err) {
       console.error('Failed to delete file:', err);
-      alert('Failed to delete file');
+      const errorMsg = err.response?.data?.message || 'Failed to delete file';
+      alert(errorMsg);
     }
   };
 
@@ -77,6 +78,7 @@ export default function FilesList({ projectId, refreshTrigger }) {
           </span>
         );
       case 'uploading':
+      case 'uploaded':
         return (
           <span className="files-list__badge files-list__badge--uploading">
             <Clock className="files-list__badge-icon" />
@@ -189,26 +191,26 @@ export default function FilesList({ projectId, refreshTrigger }) {
 
               {/* Actions */}
               <div className="files-list__item-actions">
+                {/* Extract button - only for ready files */}
                 {file.status === 'ready' && (
-                  <>
-                    <button
-                      onClick={() => handleExtract(file.id)}
-                      className="files-list__extract-button"
-                      title="Extract with AI"
-                    >
-                      <Sparkles className="files-list__extract-icon" />
-                      <span>Extract</span>
-                    </button>
-
-                    <button
-                      onClick={() => handleDelete(file.id)}
-                      className="files-list__delete-button"
-                      title="Delete file"
-                    >
-                      <Trash2 className="files-list__delete-icon" />
-                    </button>
-                  </>
+                  <button
+                    onClick={() => handleExtract(file.id)}
+                    className="files-list__extract-button"
+                    title="Extract with AI"
+                  >
+                    <Sparkles className="files-list__extract-icon" />
+                    <span>Extract</span>
+                  </button>
                 )}
+
+                {/* Delete button - ALWAYS ENABLED for all files */}
+                <button
+                  onClick={() => handleDelete(file.id, file.original_filename)}
+                  className="files-list__delete-button"
+                  title="Delete file"
+                >
+                  <Trash2 className="files-list__delete-icon" />
+                </button>
               </div>
             </div>
           </div>

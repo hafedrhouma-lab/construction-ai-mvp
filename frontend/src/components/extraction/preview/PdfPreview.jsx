@@ -1,6 +1,7 @@
 // components/extraction/preview/PdfPreview.jsx
+// 🚀 MODIFIED: Added lazy loading for compact mode
 import { useState, useEffect } from 'react';
-import { Maximize2, X, ZoomIn, ZoomOut, RotateCw } from 'lucide-react';
+import { Maximize2, X, ZoomIn, ZoomOut, RotateCw, Eye } from 'lucide-react';
 import axios from 'axios';
 import './PdfPreview.css';
 
@@ -8,7 +9,7 @@ const API_URL = import.meta.env.VITE_API_URL || '${API_URL}';
 
 export default function PdfPreview({ fileId, pageNumber, compact = false }) {
   const [imageUrl, setImageUrl] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false); // 🚀 CHANGED: Start as false, not true
   const [error, setError] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [zoom, setZoom] = useState(100);
@@ -16,36 +17,39 @@ export default function PdfPreview({ fileId, pageNumber, compact = false }) {
 
   console.log('🎨 PdfPreview render:', { fileId, pageNumber, compact, loading, imageUrl: imageUrl ? 'loaded' : 'null', error });
 
-  useEffect(() => {
-    const fetchPreview = async () => {
-      try {
-        setLoading(true);
-        setError(null);
+  // 🚀 MODIFIED: Removed auto-fetch useEffect
+  // Preview now loads only when fetchPreview() is called manually
 
-        console.log(`📄 Loading preview for page ${pageNumber}...`);
+  const fetchPreview = async () => {
+    if (loading || imageUrl) return; // Don't reload if already loading/loaded
 
-        const response = await axios.get(
-          `${API_URL}/extractions/preview/${fileId}/${pageNumber}`
-        );
+    try {
+      setLoading(true);
+      setError(null);
 
-        console.log('✅ Preview response:', response.data);
-        setImageUrl(response.data.image);
-      } catch (err) {
-        console.error('❌ Failed to load preview:', err);
-        setError('Failed to load preview');
-      } finally {
-        setLoading(false);
-      }
-    };
+      console.log(`📄 Loading preview for page ${pageNumber}...`);
 
-    if (fileId && pageNumber) {
-      fetchPreview();
+      const response = await axios.get(
+        `${API_URL}/extractions/preview/${fileId}/${pageNumber}`
+      );
+
+      console.log('✅ Preview response:', response.data);
+      setImageUrl(response.data.image);
+    } catch (err) {
+      console.error('❌ Failed to load preview:', err);
+      setError('Failed to load preview');
+    } finally {
+      setLoading(false);
     }
-  }, [fileId, pageNumber]);
+  };
 
+  // Reset zoom/rotation when page changes
   useEffect(() => {
     setZoom(100);
     setRotation(0);
+    // 🚀 MODIFIED: Clear imageUrl when page changes (forces re-load)
+    setImageUrl(null);
+    setError(null);
   }, [pageNumber]);
 
   const handleZoomIn = () => setZoom(z => Math.min(z + 25, 200));
@@ -55,6 +59,25 @@ export default function PdfPreview({ fileId, pageNumber, compact = false }) {
     setZoom(100);
     setRotation(0);
   };
+
+  // 🚀 NEW: Show "Load Preview" button in compact mode when not loaded
+  if (compact && !imageUrl && !loading && !error) {
+    return (
+      <div className="pdf-preview-compact-placeholder">
+        <div className="pdf-preview-placeholder-content">
+          <div className="pdf-preview-placeholder-icon">📄</div>
+          <p className="pdf-preview-placeholder-text">Page {pageNumber}</p>
+          <button
+            onClick={fetchPreview}
+            className="pdf-preview-load-btn"
+          >
+            <Eye size={16} />
+            <span>Load Preview</span>
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     console.log('🔄 Rendering loading state (compact:', compact, ')');
@@ -76,6 +99,9 @@ export default function PdfPreview({ fileId, pageNumber, compact = false }) {
     return (
       <div className={compact ? "pdf-preview-error-compact" : "pdf-preview-error"}>
         <p className="pdf-preview-error-text">Failed to load</p>
+        <button onClick={fetchPreview} className="pdf-preview-retry-btn">
+          Retry
+        </button>
       </div>
     );
   }

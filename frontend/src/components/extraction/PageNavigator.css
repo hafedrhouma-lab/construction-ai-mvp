@@ -1,27 +1,60 @@
+/* frontend/src/components/extraction/PageNavigator.css */
+
 .page-navigator {
   display: flex;
   align-items: center;
   gap: 16px;
+  padding: 16px;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
 }
 
 .nav-btn {
-  padding: 8px 12px;
-  background-color: #f3f4f6;
-  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 16px;
+  background: #3b82f6;
+  color: white;
   border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
   cursor: pointer;
+  transition: all 0.2s;
+  min-width: 80px;
 }
 
-.nav-btn:hover {
-  background-color: #e5e7eb;
+.nav-btn:hover:not(:disabled) {
+  background: #2563eb;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
 }
 
 .nav-btn:disabled {
-  opacity: 0.5;
+  background: #e5e7eb;
+  color: #9ca3af;
   cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
 .page-input-group {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+
+.page-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.page-current {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -29,19 +62,95 @@
 
 .page-label {
   font-size: 14px;
-  color: #6b7280;
+  font-weight: 500;
+  color: #4b5563;
 }
 
 .page-input {
-  width: 80px;
-  padding: 8px 12px;
+  width: 70px;
+  padding: 6px 10px;
   border: 1px solid #d1d5db;
-  border-radius: 8px;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 600;
   text-align: center;
+  color: #111827;
+  transition: all 0.2s;
 }
 
 .page-input:focus {
   outline: none;
   border-color: #3b82f6;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.page-input::-webkit-inner-spin-button,
+.page-input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.page-input[type=number] {
+  -moz-appearance: textfield;
+}
+
+.page-details {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+}
+
+.page-position {
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.page-total-hint {
+  color: #9ca3af;
+  font-weight: 400;
+  font-size: 12px;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .page-navigator {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .nav-btn {
+    width: 100%;
+  }
+
+  .page-input-group {
+    width: 100%;
+  }
+}
+
+/* Add/update these in PageNavigator.css */
+
+.page-relevance {
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.page-relevance.relevant {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.page-relevance.not-relevant {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+.relevant-counter {
+  font-size: 11px;
+  color: #6b7280;
+  margin-top: 4px;
+  text-align: center;
 }

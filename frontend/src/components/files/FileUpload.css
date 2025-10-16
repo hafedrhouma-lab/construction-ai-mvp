@@ -298,3 +298,228 @@
 .file-upload__action-button:hover {
   background-color: #2563eb;
 }
+
+/* Add these styles to FileUpload.css */
+
+.file-upload__cost-estimate {
+  margin: 16px 0;
+  padding: 16px;
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border: 2px solid #fbbf24;
+  border-radius: 8px;
+}
+
+.cost-estimate-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.cost-estimate-header svg {
+  color: #92400e;
+}
+
+.cost-estimate-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #92400e;
+}
+
+.cost-estimate-details {
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.cost-main {
+  font-size: 28px;
+  font-weight: 700;
+  color: #78350f;
+  line-height: 1.2;
+}
+
+.cost-breakdown {
+  font-size: 13px;
+  color: #92400e;
+  margin-top: 4px;
+}
+
+.cost-estimate-note {
+  font-size: 12px;
+  color: #92400e;
+  text-align: center;
+  padding-top: 8px;
+  border-top: 1px dashed #fbbf24;
+}
+
+/* Add these styles to FileUpload.css */
+
+/* 🚀 NEW: Topic Selector */
+.file-upload__topic-selector {
+  margin-bottom: 24px;
+  padding: 20px;
+  background: #f9fafb;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+}
+
+.file-upload__topic-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 8px;
+}
+
+.file-upload__topic-select {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 14px;
+  border: 2px solid #d1d5db;
+  border-radius: 6px;
+  background: white;
+  color: #111827;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.file-upload__topic-select:hover {
+  border-color: #9ca3af;
+}
+
+.file-upload__topic-select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.file-upload__topic-hint {
+  margin-top: 8px;
+  font-size: 13px;
+  color: #6b7280;
+  line-height: 1.5;
+}
+
+/* Cost Estimate styles */
+.file-upload__cost-estimate {
+  margin: 16px 0;
+  padding: 16px;
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border: 2px solid #fbbf24;
+  border-radius: 8px;
+}
+
+.cost-estimate-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.cost-estimate-header svg {
+  color: #92400e;
+}
+
+.cost-estimate-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #92400e;
+}
+
+.cost-estimate-details {
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.cost-main {
+  font-size: 28px;
+  font-weight: 700;
+  color: #78350f;
+  line-height: 1.2;
+}
+
+.cost-breakdown {
+  font-size: 13px;
+  color: #92400e;
+  margin-top: 4px;
+}
+
+.cost-estimate-note {
+  font-size: 12px;
+  color: #92400e;
+  text-align: center;
+  padding-top: 8px;
+  border-top: 1px dashed #fbbf24;
+}
+
+/* Multi-select topic tags */
+.file-upload__topic-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+  min-height: 36px;
+  padding: 8px;
+  background: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 6px;
+}
+
+.file-upload__topic-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: #3b82f6;
+  color: white;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.file-upload__topic-tag-remove {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  border-radius: 50%;
+  color: white;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.2s;
+  padding: 0;
+}
+
+.file-upload__topic-tag-remove:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.file-upload__topic-select {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 14px;
+  border: 2px solid #d1d5db;
+  border-radius: 6px;
+  background: white;
+  color: #6b7280;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.file-upload__topic-select:hover {
+  border-color: #9ca3af;
+}
+
+.file-upload__topic-select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  color: #111827;
+}
+
+.file-upload__topic-select option:disabled {
+  color: #d1d5db;
+}

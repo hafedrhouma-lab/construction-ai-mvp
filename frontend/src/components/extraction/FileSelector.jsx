@@ -1,34 +1,57 @@
 // frontend/src/components/extraction/FileSelector.jsx
+// FIXED: Don't load files until we have a projectId
+
 import { useState, useEffect } from 'react';
 import './FileSelector.css';
 
-export default function FileSelector({ selectedFile, onSelectFile }) {
+export default function FileSelector({ selectedFile, onSelectFile, projectId }) {
   const [files, setFiles] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    loadFiles();
-  }, []);
+    if (projectId) {
+      loadFiles();
+    }
+  }, [projectId]);
 
   const loadFiles = async () => {
+    setLoading(true);
     try {
-        const API_URL = import.meta.env.VITE_API_URL || '${API_URL}';
-        const projects = await fetch(`${API_URL}/projects`).then(r => r.json());
-        const projectId = projects[0]?.id;
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api/v1';
 
-        if (projectId) {
-          const filesData = await fetch(`${API_URL}/files?project_id=${projectId}`).then(r => r.json());
+      // API requires project_id parameter
+      const filesData = await fetch(`${API_URL}/files?project_id=${projectId}`).then(r => r.json());
+
+      // Ensure it's an array
+      if (Array.isArray(filesData)) {
         setFiles(filesData);
+      } else {
+        console.error('API returned non-array:', filesData);
+        setFiles([]);
       }
+
     } catch (error) {
       console.error('Failed to load files:', error);
+      setFiles([]);
     } finally {
       setLoading(false);
     }
   };
 
+  if (!projectId) {
+    return (
+      <div style={{ padding: '20px', textAlign: 'center', color: '#666' }}>
+        Loading project...
+      </div>
+    );
+  }
+
   if (loading) {
     return <div style={{ color: '#666' }}>Loading files...</div>;
+  }
+
+  if (files.length === 0) {
+    return <div style={{ color: '#666' }}>No files found in this project</div>;
   }
 
   return (

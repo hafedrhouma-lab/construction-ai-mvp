@@ -273,3 +273,71 @@
     min-width: 32px;
   }
 }
+
+/* ADD THESE STYLES TO YOUR EXISTING PdfPreview.css */
+
+/* 🚀 NEW: Placeholder with Load Button */
+.pdf-preview-compact-placeholder {
+  background: #f9fafb;
+  border-radius: 8px;
+  border: 2px dashed #e5e7eb;
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pdf-preview-placeholder-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+}
+
+.pdf-preview-placeholder-icon {
+  font-size: 48px;
+  opacity: 0.5;
+}
+
+.pdf-preview-placeholder-text {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0;
+  font-weight: 500;
+}
+
+.pdf-preview-load-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.pdf-preview-load-btn:hover {
+  background: #2563eb;
+}
+
+.pdf-preview-retry-btn {
+  margin-top: 8px;
+  padding: 6px 12px;
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.pdf-preview-retry-btn:hover {
+  background: #dc2626;
+}

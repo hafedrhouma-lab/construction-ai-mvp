@@ -28,13 +28,13 @@ if (!fs.existsSync(uploadsDir)) {
 
 class FilesController {
   /**
-   * ✨ NEW: Upload PDF file and process
+   * 🚀 UPDATED: Upload PDF file and process (with multiple topics support)
    * POST /api/v1/files/upload
-   * Multipart form data with 'file' and 'project_id'
+   * Multipart form data with 'file', 'project_id', and optional 'topics' (JSON array)
    */
   async upload(req, res) {
     try {
-      const { project_id } = req.body;
+      const { project_id, topics: topicsRaw } = req.body;
       const file = req.file;
 
       if (!file) {
@@ -45,13 +45,33 @@ class FilesController {
         return res.status(400).json({ error: 'project_id is required' });
       }
 
-      logger.info(`📤 File upload received: ${file.originalname} (${(file.size / 1024 / 1024).toFixed(2)}MB)`);
+      // 🚀 PARSE topics (comes as JSON string from FormData)
+      let topics = [];
+      if (topicsRaw) {
+        try {
+          topics = typeof topicsRaw === 'string' ? JSON.parse(topicsRaw) : topicsRaw;
 
-      // Process file (split + upload to S3)
+          // Ensure it's an array
+          if (!Array.isArray(topics)) {
+            topics = [topics];
+          }
+        } catch (e) {
+          logger.error('Failed to parse topics:', e);
+          return res.status(400).json({ error: 'Invalid topics format. Expected JSON array.' });
+        }
+      }
+
+      logger.info(`📤 File upload received: ${file.originalname} (${(file.size / 1024 / 1024).toFixed(2)}MB)`);
+      if (topics && topics.length > 0) {
+        logger.info(`🎯 Topics: ${topics.join(', ')}`);
+      }
+
+      // Process file (split + upload to S3 + filter by topics)
       const result = await filesService.uploadAndProcess(
         {
           project_id,
-          original_filename: file.originalname
+          original_filename: file.originalname,
+          topics: topics // 🚀 Send as array
         },
         file.path
       );
@@ -100,7 +120,7 @@ class FilesController {
     try {
       const { id } = req.params;
       const { pageCount } = req.body;
-      
+
       const file = await filesService.confirmUpload(id, pageCount);
       res.json(file);
     } catch (error) {
@@ -116,7 +136,7 @@ class FilesController {
   async getAll(req, res) {
     try {
       const { project_id, status, file_type, limit, offset } = req.query;
-      
+
       if (!project_id) {
         return res.status(400).json({ error: 'project_id is required' });
       }
@@ -127,7 +147,7 @@ class FilesController {
         limit,
         offset
       });
-      
+
       res.json(files);
     } catch (error) {
       logger.error('Get files failed:', error);
@@ -159,14 +179,18 @@ class FilesController {
   }
 
   /**
-   * Delete file
+   * Delete file - allows deletion of ALL files regardless of status
    * DELETE /api/v1/files/:id
    */
   async delete(req, res) {
     try {
       const { id } = req.params;
+
+      // Just delete - no status check
+      logger.info(`🗑️  Deleting file: ${id}`);
       const result = await filesService.delete(id);
-      res.json(result);
+      res.json({ message: 'File deleted successfully' });
+
     } catch (error) {
       logger.error('Delete file failed:', error);
       res.status(500).json({ error: error.message });

@@ -3,7 +3,7 @@ import crypto from 'crypto';
 
 class FilesRepository {
   /**
-   * Create a new file record
+   * 🚀 UPDATED: Create a new file record (with topics array support)
    */
   async create(fileData) {
     const {
@@ -14,6 +14,7 @@ class FilesRepository {
       file_type,
       mime_type,
       total_pages,
+      topics, // 🚀 NEW: Array of topics
       metadata = {}
     } = fileData;
 
@@ -24,9 +25,9 @@ class FilesRepository {
     const query = `
       INSERT INTO files (
         id, user_id, project_id, s3_key, s3_bucket, 
-        original_filename, file_type, mime_type, page_count, metadata, status
+        original_filename, file_type, mime_type, page_count, topics, metadata, status
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
       RETURNING *
     `;
 
@@ -40,10 +41,43 @@ class FilesRepository {
       file_type || 'pdf',
       mime_type || 'application/pdf',
       total_pages || 0,
+      topics || [], // 🚀 NEW: Store as array
       JSON.stringify(metadata),
       'uploading' // Initial status
     ]);
 
+    return result.rows[0];
+  }
+
+  /**
+   * 🚀 NEW: Generic update method for any field
+   */
+  async update(id, updates) {
+    const fields = [];
+    const values = [];
+    let paramCount = 1;
+
+    // Build dynamic SET clause
+    for (const [key, value] of Object.entries(updates)) {
+      fields.push(`${key} = $${paramCount}`);
+      values.push(value);
+      paramCount++;
+    }
+
+    if (fields.length === 0) {
+      throw new Error('No fields to update');
+    }
+
+    const query = `
+      UPDATE files
+      SET ${fields.join(', ')}, updated_at = CURRENT_TIMESTAMP
+      WHERE id = $${paramCount} AND deleted_at IS NULL
+      RETURNING *
+    `;
+
+    values.push(id);
+
+    const result = await pool.query(query, values);
     return result.rows[0];
   }
 

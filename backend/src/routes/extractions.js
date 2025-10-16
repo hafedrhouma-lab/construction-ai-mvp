@@ -1,5 +1,5 @@
 // routes/extractions.js
-// COMPLETE FIXED VERSION - All endpoints working
+// COMPLETE FIXED VERSION - All endpoints working + extraction limit tracking
 
 import express from 'express';
 import { getExtractor } from '../services/ai/index.js';
@@ -45,6 +45,18 @@ router.post('/start', async (req, res) => {
     if (existingResult.rows.length > 0) {
       const existing = existingResult.rows[0];
 
+      // 🚫 CHECK EXTRACTION LIMIT (2 attempts max)
+      const currentAttempts = existing.extraction_attempts || 1;
+      if (currentAttempts >= 2 && (existing.status === 'completed' || existing.status === 'failed')) {
+        console.log(`🚫 Extraction limit reached for page ${page_number} (${currentAttempts} attempts)`);
+        return res.status(429).json({
+          error: 'Re-extract limit reached',
+          message: `This page has already been extracted ${currentAttempts} times. Limit: 2 attempts per page.`,
+          attempts: currentAttempts,
+          limit: 2
+        });
+      }
+
       // CASE 1: Failed extraction - IMMEDIATE RETRY + CLEANUP
       if (existing.status === 'failed') {
         console.log(`♻️  Retrying failed extraction for page ${page_number}`);
@@ -63,7 +75,8 @@ router.post('/start', async (req, res) => {
                raw_response = NULL,
                extracted_items = NULL,
                confidence_score = NULL,
-               processing_time_ms = NULL
+               processing_time_ms = NULL,
+               extraction_attempts = extraction_attempts + 1
            WHERE id = $1`,
           [existing.id]
         );
@@ -87,7 +100,8 @@ router.post('/start', async (req, res) => {
                raw_response = NULL,
                extracted_items = NULL,
                confidence_score = NULL,
-               processing_time_ms = NULL
+               processing_time_ms = NULL,
+               extraction_attempts = extraction_attempts + 1
            WHERE id = $1`,
           [existing.id]
         );
@@ -136,11 +150,11 @@ router.post('/start', async (req, res) => {
         extractionId = existing.id;
       }
     } else {
-      // Create new extraction
+      // Create new extraction (first attempt)
       console.log(`🆕 Creating new extraction for page ${page_number}`);
       const result = await pool.query(
-        `INSERT INTO extractions (file_id, page_number, status, model_version)
-         VALUES ($1, $2, 'pending', 'gpt-4o')
+        `INSERT INTO extractions (file_id, page_number, status, model_version, extraction_attempts)
+         VALUES ($1, $2, 'pending', 'gpt-4o', 1)
          RETURNING id`,
         [file_id, page_number]
       );
@@ -163,6 +177,7 @@ router.post('/start', async (req, res) => {
     res.status(500).json({ error: 'Failed to start extraction', details: error.message });
   }
 });
+
 /**
  * Background processing function
  */
@@ -232,17 +247,26 @@ async function processExtraction(extractionId) {
     for (const item of aiResult.line_items) {
       await pool.query(
         `INSERT INTO line_items (
-          extraction_id, line_number, description, quantity, unit,
-          unit_price, total_price, confidence_score, source
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+          extraction_id, line_number, 
+          description, quantity, unit, unit_price, total_price,
+          original_description, original_quantity, original_unit, original_unit_price, original_total_price,
+          confidence_score, source
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
         [
           extractionId,
           item.line_number,
+          // Current values (what user sees/edits)
           item.description,
           item.quantity,
           item.unit,
           item.unit_price,
           item.total_price,
+          // Original values (for comparison in export)
+          item.description,     // Same as current initially
+          item.quantity,        // Same as current initially
+          item.unit,           // Same as current initially
+          item.unit_price,     // Same as current initially
+          item.total_price,    // Same as current initially
           item.confidence_score,
           'ai'
         ]
@@ -302,6 +326,7 @@ async function processExtraction(extractionId) {
     }
   }
 }
+
 /**
  * GET /api/v1/extractions/:id
  * Get extraction with line items
@@ -376,8 +401,6 @@ router.get('/file/:file_id', async (req, res) => {
   }
 });
 
-// Add this route to extractions.js
-
 /**
  * GET /api/v1/extractions/preview/:file_id/:page_number
  * Get page preview image
@@ -416,4 +439,5 @@ router.get('/preview/:file_id/:page_number', async (req, res) => {
     res.status(500).json({ error: 'Failed to get preview' });
   }
 });
+
 export default router;

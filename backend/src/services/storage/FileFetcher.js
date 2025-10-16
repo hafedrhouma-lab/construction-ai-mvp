@@ -1,5 +1,5 @@
 // services/storage/FileFetcher.js
-// FIXED: Now converts PDF to image
+// FIXED: Ensures temp directory exists before operations
 
 import { promises as fs } from 'fs';
 import path from 'path';
@@ -22,14 +22,20 @@ class FileFetcher {
     });
 
     this.tempDir = path.join(__dirname, '../../temp');
-    this.ensureTempDir();
   }
 
+  /**
+   * Ensure temp directory exists (called before each operation)
+   */
   async ensureTempDir() {
     try {
       await fs.mkdir(this.tempDir, { recursive: true });
     } catch (error) {
-      console.error('Failed to create temp directory:', error);
+      // Ignore error if directory already exists
+      if (error.code !== 'EEXIST') {
+        console.error('Failed to create temp directory:', error);
+        throw error;
+      }
     }
   }
 
@@ -40,6 +46,9 @@ class FileFetcher {
    * @returns {Promise<Object>} { tempPdfPath, imagePath }
    */
   async getPdfForPage(file, pageNumber) {
+    // ✅ Ensure temp directory exists before starting
+    await this.ensureTempDir();
+
     const { s3_key, id } = file;
 
     console.log(`📂 Fetching page ${pageNumber}...`);
@@ -70,6 +79,9 @@ class FileFetcher {
    * Download part-N.pdf from S3
    */
   async downloadPartFromS3(s3KeyPath, pageNumber, fileId) {
+    // ✅ Ensure temp directory exists before downloading
+    await this.ensureTempDir();
+
     let key; // Declare at function scope
 
     try {
@@ -103,6 +115,8 @@ class FileFetcher {
       // Save to temp
       const tempPath = path.join(this.tempDir, `${fileId}_part${pageNumber}.pdf`);
       const buffer = Buffer.from(await response.Body.transformToByteArray());
+
+      // ✅ Write file (directory guaranteed to exist now)
       await fs.writeFile(tempPath, buffer);
 
       console.log(`   ✅ Downloaded: ${tempPath}`);
