@@ -37,7 +37,7 @@ class PDFProcessorService {
 
       const uploadedPages = [];
       const relevantPages = new Set(); // Track relevant pages
-      const BATCH_SIZE = 10; // Process 10 pages at once
+      const BATCH_SIZE = 1; // Process 1 pages at once
 
       // Process in batches
       for (let i = 0; i < totalPages; i += BATCH_SIZE) {

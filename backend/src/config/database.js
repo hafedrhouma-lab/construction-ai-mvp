@@ -10,9 +10,9 @@ const pool = new Pool({
   database: config.database.name,
   user: config.database.user,
   password: config.database.password,
-  max: config.database.max,
-  idleTimeoutMillis: config.database.idleTimeoutMillis,
+  max: config.database.max,  idleTimeoutMillis: config.database.idleTimeoutMillis,
   connectionTimeoutMillis: config.database.connectionTimeoutMillis,
+  ssl: { rejectUnauthorized: false}
 });
 
 // Test connection on startup
