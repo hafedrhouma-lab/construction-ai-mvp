@@ -1,6 +1,6 @@
 # QuickBids - AI Construction Document Extraction
 
-**Version:** 1.0.0 | **Status:** Production Ready MVP
+**Version:** 1.0.0 | **Status:** Ready MVP
 
 ## What It Does
 
