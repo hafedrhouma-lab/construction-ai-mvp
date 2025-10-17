@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { FileText, FolderKanban, DollarSign } from 'lucide-react';
+import { FileText, FolderKanban, DollarSign, Sparkles } from 'lucide-react';  // ← Add Sparkles
 import './Layout.css';
 
 function Layout({ children }) {
@@ -42,6 +42,15 @@ function Layout({ children }) {
           >
             <DollarSign size={20} />
             <span>Estimates</span>
+          </Link>
+
+          {/* NEW DEMO LINK */}
+          <Link
+            to="/demo"
+            className={`nav-item ${isActive('/demo') ? 'active' : ''}`}
+          >
+            <Sparkles size={20} />
+            <span>AI Demo Chat</span>
           </Link>
         </nav>
 

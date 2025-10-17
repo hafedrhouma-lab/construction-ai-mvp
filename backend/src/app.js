@@ -13,6 +13,8 @@ import estimatesRoutes from './routes/estimates.js';      // NEW
 
 import exportsRoutes from './routes/exports.js';
 
+import demoRoutes from './routes/demo.js';
+
 const app = express();
 
 // ============================================
@@ -62,6 +64,9 @@ app.use('/api/v1/extractions', extractionsRoutes);    // NEW
 app.use('/api/v1/line-items', lineItemsRoutes);       // NEW
 app.use('/api/v1/estimates', estimatesRoutes);        // NEW
 app.use('/api/v1/estimates', exportsRoutes);
+
+app.use('/api/demo', demoRoutes);
+
 
 // 404 handler
 app.use((req, res) => {

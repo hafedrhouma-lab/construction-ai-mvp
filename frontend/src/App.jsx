@@ -4,7 +4,8 @@ import Layout from './components/Layout';
 import ProjectsPage from './pages/ProjectsPage';
 import ProjectDetailPage from './pages/ProjectDetailPage';
 import FilesPage from './pages/FilesPage';
-import ExtractionFlow from './pages/ExtractionFlow';  // ← ADD THIS
+import ExtractionFlow from './pages/ExtractionFlow';
+import Demo from './pages/Demo';  // ← ADD THIS
 import './index.css';
 
 function App() {
@@ -21,8 +22,11 @@ function App() {
 
           {/* Files & Extraction */}
           <Route path="/files" element={<FilesPage />} />
-          <Route path="/extract" element={<ExtractionFlow />} />           {/* ← ADD THIS */}
-          <Route path="/extract/:fileId" element={<ExtractionFlow />} />   {/* ← ADD THIS */}
+          <Route path="/extract" element={<ExtractionFlow />} />
+          <Route path="/extract/:fileId" element={<ExtractionFlow />} />
+
+          {/* Demo - NEW */}
+          <Route path="/demo" element={<Demo />} />  {/* ← ADD THIS LINE */}
 
           {/* Other routes */}
           <Route path="/estimates" element={<ComingSoon feature="Estimates" />} />
