@@ -148,13 +148,13 @@ const Demo = () => {
       }
 
       await sleep(500);
-      addLog(`✅ Scanned ${data.scanned_pages} pages in ${data.processing_time.stage1}`, 'success');
+      addLog(`✅ Scanned ${data.scanned_pages} pages in ${data.processing_time?.stage1_scan || 'N/A'}`, 'success');
       await sleep(500);
 
       addLog(`📍 Found ${data.relevant_pages.length} relevant pages`, 'success');
       await sleep(500);
 
-      addLog(`⚡ Extracted ${data.line_items?.length || 0} line items in ${data.processing_time.stage2}`, 'success');
+      addLog(`⚡ Extracted ${data.line_items?.length || 0} line items in ${data.processing_time?.stage2_extract || 'N/A'}`, 'success');
       await sleep(500);
 
       if (data.conflicts.length > 0) {
@@ -163,7 +163,9 @@ const Demo = () => {
         addLog('✅ No conflicts detected', 'success');
       }
 
-      addLog(`💰 Total processing cost: $${data.cost_breakdown.total}`, 'info');
+      if (data.cost_breakdown?.total) {
+        addLog(`💰 Total processing cost: $${data.cost_breakdown.total}`, 'info');
+      }
 
       setAnalysis(data);
       setStage('questions');
