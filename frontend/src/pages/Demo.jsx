@@ -17,7 +17,7 @@ const Demo = () => {
   const [loading, setLoading] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
 
-  const API_URL = 'http://localhost:3001';
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
   const addLog = (message, type = 'info') => {
     setLogs(prev => [...prev, {
