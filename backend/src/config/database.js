@@ -12,7 +12,7 @@ const pool = new Pool({
   password: config.database.password,
   max: config.database.max,  idleTimeoutMillis: config.database.idleTimeoutMillis,
   connectionTimeoutMillis: config.database.connectionTimeoutMillis,
-  // ssl: { rejectUnauthorized: false}
+  ssl: { rejectUnauthorized: false}
 });
 
 // Test connection on startup
